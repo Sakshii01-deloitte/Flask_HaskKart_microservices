@@ -65,10 +65,40 @@ def get_all_products():
 def delete_product(id):
     data = request.get_json()
     product = Products.query.filter_by(id=id).first() 
-    if product:
-        if(data['admin']=="True"):
-            db.session.delete(product)
-            db.session.commit()
-            return{"message":"product deleted successfully"}
-        return {"message":"cant perfom "}, 401    
-    return {"message":"product not found"},404
+    print(product)
+    db.session.delete(product)
+    db.session.commit()
+    return{"message":"product deleted successfully"}
+    
+    
+    
+    
+#reduce products by given quantity
+@app.route('/product/quantity/<int:quantity>/<int:id>',methods=['PUT'])
+def update_product_quantity_by_value(quantity,id):
+    product = Products.query.filter_by(id=id).first()
+    if not product:
+        return {"message":"couldn't find product"}, 404
+    product.quantity= product.quantity-quantity
+    db.session.commit()
+    return {"message":"Quantity updated"}, 200
+
+
+#get product by category
+@app.route('/product/<string:category>')
+def get_product_by_category(category):
+    products = Products.query.filter(Products.category.like(category)).all()
+    output=[]
+    for product in products:
+        new_prod={"id":product.id,
+                "product_name":product.product_name,
+                    "price":product.price,
+                    "ratings":product.ratings,
+                    "category":product.category,
+                    "description":product.description,
+                    "quantity":product.quantity}
+        output.append(new_prod)
+    response = jsonify({'products' : output})
+    if len(output)==0:
+        return{"message":"Products not found"},404
+    return response

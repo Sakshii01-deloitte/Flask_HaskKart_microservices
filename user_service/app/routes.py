@@ -180,8 +180,9 @@ def delete_user(current_user,id):
 
     return jsonify({'message': "User is deleted Successfully"}),200
 
-#admin can add new product
 
+
+#admin can add new product
 @app.route('/addproduct', methods=['POST'])
 @token_required
 def add_product(current_user):
@@ -194,6 +195,8 @@ def add_product(current_user):
             return jsonify({'message': "cant perform action"}),403
     except :
         return jsonify({'message': "cant perform action"}),500
+    
+    
     
 #user can fetch product by id
 @app.route('/product/<id>', methods=['GET'])
@@ -214,16 +217,5 @@ def get_all_products(current_user):
 
 
 
-@app.route('/deleteProduct/<id>', methods=['DELETE'])
-@token_required
-def delete_product(current_user, id):
-    app.logger.info('delete_product')
-    if(current_user.admin):
-        data={
-            "admin": current_user.type == "admin",
-            "user_id": current_user.id
-        }
-        res = requests.delete(PRODUCT_SERVICE_URL + id, json=data)
-        return res.json(), res.status_code
-    else:
-         return jsonify({'message': "cant perform"}), 403
+
+ 
