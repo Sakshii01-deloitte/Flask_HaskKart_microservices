@@ -154,3 +154,22 @@ def get_user(current_user):
     user_data['admin']= current_user.admin
     response = jsonify(user_data)
     return response
+
+
+# adding delete user feature
+@app.route('/user/deleteUser/<id>', methods=['DELETE'])
+@token_required
+def delete_user(current_user,id):
+    app.logger.info('delete_user')
+    if not current_user.admin:
+        app.logger.info("Action can't be performed,User is not admin")
+        return jsonify({'message': "Action can't be performed,User is not admin"}),401
+    user = User.query.filter_by(id=id).first()
+    if not user:
+        app.logger.info("No user found")
+        return jsonify({'message': "No user found"}),404
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({'message': "User is deleted Successfully"}),200
+
