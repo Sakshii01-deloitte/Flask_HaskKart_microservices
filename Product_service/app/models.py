@@ -8,4 +8,5 @@ class Products(db.Model):
     category = db.Column(db.String(120))
     description = db.Column(db.String(120))
     quantity = db.Column(db.Integer)
+    user_id = db.Column(db.Integer)
     

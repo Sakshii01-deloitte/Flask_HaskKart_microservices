@@ -8,6 +8,10 @@ from app import app, db
 from app.models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 import config
+import requests
+
+
+PRODUCT_SERVICE_URL = 'http://127.0.0.1:5001/product/'
 
 
 @app.before_first_request
@@ -173,3 +177,25 @@ def delete_user(current_user,id):
 
     return jsonify({'message': "User is deleted Successfully"}),200
 
+#admin can add new product
+
+@app.route('/addproduct', methods=['POST'])
+@token_required
+def add_product(current_user):
+    app.logger.info("Add Products")
+    try:
+        if current_user.admin == True:
+            res = requests.post('http://127.0.0.1:5001/product' + str(current_user.id),json=request.get_json())
+            return res.json()
+        else:
+            return jsonify({'message': "cant perform action"}),403
+    except :
+        return jsonify({'message': "cant perform action"}),500
+    
+#user can fetch product
+@app.route('/product/<id>', methods=['GET'])
+@token_required
+def get_product(current_user, id):
+    app.logger.info('get product')
+    res = requests.get(PRODUCT_SERVICE_URL+ id)
+    return res.json(), res.status_code
