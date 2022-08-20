@@ -7,5 +7,5 @@ class User(db.Model):
     email = db.Column(db.String(120), index=True, unique=True)
     name = db.Column(db.String(50))
     password = db.Column(db.String(80))
-    admin = db.Column(db.Boolean)
+    type = db.Column(db.String(100))
     print("database added")

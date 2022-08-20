@@ -41,3 +41,34 @@ def get_product(id):
                     "id":product.id}
         return response,200
     return {"message":"coudent find product"},404
+
+@app.route('/products')
+def get_all_products():
+    products = Products.query.all()
+    output=[]
+    for product in products:
+        new_prod={"id":product.id,
+                "product_name":product.product_name,
+                    "price":product.price,
+                    "ratings":product.ratings,
+                    "category":product.category,
+                    "description":product.description,
+                    "quantity":product.quantity}
+        output.append(new_prod)
+    response = jsonify({'products' : output})
+    return response
+
+
+
+#Admin can delete products
+@app.route('/product/<int:id>',methods=['DELETE'])
+def delete_product(id):
+    data = request.get_json()
+    product = Products.query.filter_by(id=id).first() 
+    if product:
+        if(data['admin']=="True"):
+            db.session.delete(product)
+            db.session.commit()
+            return{"message":"product deleted successfully"}
+        return {"message":"cant perfom "}, 401    
+    return {"message":"product not found"},404
