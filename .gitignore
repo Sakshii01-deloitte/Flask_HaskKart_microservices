@@ -1,1 +1,4 @@
 venv
+__pycache_
+./payment_service/app/__pycache__
+./Product_service/app/__pycache__

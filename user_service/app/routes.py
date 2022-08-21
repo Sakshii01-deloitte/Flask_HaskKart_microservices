@@ -12,6 +12,7 @@ import requests
 
 
 PRODUCT_SERVICE_URL = 'http://127.0.0.1:5001/product/'
+CART_SERVICE_URL = 'http://127.0.0.1:5002/cart/'
 
 
 @app.before_first_request
@@ -225,3 +226,12 @@ def get_products_by_category(current_user,category):
     return res.json(), res.status_code
 
 
+#cart and payment services
+#Add new item to  cart
+@app.route('/cart/add/<product_id>', methods=['POST'])
+@token_required
+def add_item_to_cart(current_user, product_id):
+    app.logger.info('add_item_to_cart')
+    
+    res = requests.post(CART_SERVICE_URL+str(current_user.id)+'/'+product_id, json=request.get_json())
+    return res.json(), res.status_code
