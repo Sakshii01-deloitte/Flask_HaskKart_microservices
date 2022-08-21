@@ -119,3 +119,16 @@ def buy_all_cart_items(user_id):
         return {"message":f"Transaction successful, Total amount = {before_price}, After discount ={total}"}
     except:
         return {"message":"Some error occured"},409
+    
+    #View user transactions
+@app.route('/transactions/<int:user_id>',methods=['GET'])
+def view_transactions(user_id):
+    transactions= Payment.query.filter(Payment.user_id==user_id).all()
+    if not transactions:
+        return {"message":"No transactions found"}, 404
+    output=[]
+    for item in transactions:
+        data={"transaction_id":item.id,"user_id":item.user_id, "product_id": item.product_id, "quantity":item.quantity,"price":item.price,
+        "timestamp": item.timestamp,"payment mode": item.payment_method, "status": item.status}
+        output.append(data)
+    return {"message": output}, 200
