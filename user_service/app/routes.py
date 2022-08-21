@@ -8,6 +8,10 @@ from app import app, db
 from app.models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 import config
+import requests
+
+
+PRODUCT_SERVICE_URL = 'http://127.0.0.1:5001/product/'
 
 
 @app.before_first_request
@@ -43,7 +47,7 @@ def token_required(f):
 @token_required
 def get_all_users(current_user):
     app.logger.info("get_all_users")
-    if not current_user.admin:
+    if  current_user.type != "admin":
         app.logger.error("cannot perform the action")
         return jsonify({'message' : 'Cant perfom action'}), 401
     
@@ -56,7 +60,7 @@ def get_all_users(current_user):
         user_data['name'] = user.name
         user_data['email'] = user.email
         user_data['password'] = user.password
-        user_data['admin'] = user.admin
+        user_data['type'] = user.type
         output.append(user_data)
         
     response = jsonify({'users': output})
@@ -70,7 +74,9 @@ def create_admin():
     
     print("add user start")
     hashed_password = generate_password_hash(data['password'],method='sha256')
-    new_user = User(username = data['username'],email = data['email'],name = data['name'],password = hashed_password,admin = True)
+    
+    new_user = User(username = data['username'],email = data['email'],name = data['name'],password = hashed_password,type = "admin")
+    
     db.session.add(new_user)
     print("add user")
     db.session.commit()
@@ -85,19 +91,19 @@ def signup_customer():
     app.logger.info("customer Signup start")
     data = request.get_json()
     
-    print("signup customer initiated")
-    if(User.query.filter(username = data['username']).first()):
-        response = jsonify({'message':'Username already exist'}),401
-        print("first response",response)
-        return response
+    # print("signup customer initiated")
+    # if(User.query.filter(username = data['username']).first()):
+    #     response = jsonify({'message':'Username already exist'}),401
+    #     print("first response",response)
+    #     return response
     
-    if(User.query.filter(email = data['email']).first()):
-        response = jsonify({'message':'email already exist'}),401
-        print("sencond response",response)
-        return response
+    # if(User.query.filter(email = data['email']).first()):
+    #     response = jsonify({'message':'email already exist'}),401
+    #     print("sencond response",response)
+    #     return response
     
     hashed_password = generate_password_hash(data['password'],method='sha256')
-    new_user = User(username = data['username'],email = data['email'],name = data['name'],password = hashed_password, admin = False)
+    new_user = User(username = data['username'],email = data['email'],name = data['name'],password = hashed_password, type = "user")
     db.session.add(new_user)
     db.session.commit()
     app.logger.info("Customer Ceation complete")
@@ -128,8 +134,9 @@ def login():
         app.logger.error('Could not find user')
         response = make_response('Could not find user', 401,{'WWW-Authenticate':'Basic realm="Login Required'})
         return response
+    
     if check_password_hash(user.password, password1):
-        token = jwt.encode({'id':user.id,'type':user.admin,'exp':datetime.datetime.utcnow() + datetime.timedelta(minutes=120)},
+        token = jwt.encode({'id':user.id,'type':user.type,'exp':datetime.datetime.utcnow() + datetime.timedelta(minutes=120)},
         app.config['SECRET_KEY'])
         
         response = jsonify({'token':token.decode('UTF-8')})
@@ -151,7 +158,7 @@ def get_user(current_user):
     user_data['username'] = current_user.username
     user_data['email'] = current_user.email
     user_data['name'] = current_user.name
-    user_data['admin']= current_user.admin
+    user_data['type']= current_user.type
     response = jsonify(user_data)
     return response
 
@@ -161,7 +168,7 @@ def get_user(current_user):
 @token_required
 def delete_user(current_user,id):
     app.logger.info('delete_user')
-    if not current_user.admin:
+    if  current_user.type != "admin":
         app.logger.info("Action can't be performed,User is not admin")
         return jsonify({'message': "Action can't be performed,User is not admin"}),401
     user = User.query.filter_by(id=id).first()
@@ -172,4 +179,49 @@ def delete_user(current_user,id):
     db.session.commit()
 
     return jsonify({'message': "User is deleted Successfully"}),200
+
+
+
+#admin can add new product
+@app.route('/addproduct', methods=['POST'])
+@token_required
+def add_product(current_user):
+    app.logger.info("Add Products")
+    try:
+        if current_user.type == 'admin':
+            res = requests.post('http://127.0.0.1:5001/product' + str(current_user.id),json=request.get_json())
+            return res.json()
+        else:
+            return jsonify({'message': "cant perform action"}),403
+    except :
+        return jsonify({'message': "cant perform action"}),500
+    
+    
+    
+#user can fetch product by id
+@app.route('/product/<id>', methods=['GET'])
+@token_required
+def get_product(current_user, id):
+    app.logger.info('get product')
+    res = requests.get(PRODUCT_SERVICE_URL+ id)
+    return res.json(), res.status_code
+
+
+
+#Fetch all the products
+@app.route('/products', methods=['GET'])
+@token_required
+def get_all_products(current_user):
+    res = requests.get('http://127.0.0.1:5001/products')
+    return res.json(), res.status_code
+
+
+
+ #Get products belonging to particular category
+@app.route('/product/<string:category>', methods=['GET'])
+@token_required
+def get_products_by_category(current_user,category):
+    res = requests.get(PRODUCT_SERVICE_URL + category)
+    return res.json(), res.status_code
+
 
