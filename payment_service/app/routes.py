@@ -43,3 +43,24 @@ def get_cart_items(user_id):
         data={"product_id":item.product_id,"quantity":item.quantity}
         output.append(data)
     return {"Cart Items":output} 
+
+#Remove One Product from Cart
+@app.route('/cart/<int:user_id>/<int:product_id>',methods=['DELETE'])
+def delete_cart_item(user_id,product_id):
+    item = Cart.query.filter((Cart.user_id==user_id),(Cart.product_id==product_id)).first()
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        return {"message":"Item removed from cart"}
+    return {"message":"Item doesn't exists"},404
+
+#Remove all products from cart
+@app.route('/cart/<int:user_id>',methods=['DELETE'])
+def delete_cart_items(user_id):
+    items = Cart.query.filter(Cart.user_id==user_id).all()
+    if not items:
+        return {"message":EMPTY_MSG},404
+    for item in items:
+        db.session.delete(item)
+        db.session.commit()
+    return {"message":"All Items  removed from cart"}
