@@ -19,7 +19,7 @@ def add_item_to_cart(user_id, product_id):
     product = requests.get(PRODUCT_SERVICE_URL + str(product_id)).json()
     
     if data['quantity'] > product['quantity']:
-        return {"message": f"Currently required quantity if {product['product_name']} is not available"},404
+        return {"message": f"Currently required quantity of {product['product_name']} is not available"},404
    
     present_item = Cart.query.filter((Cart.user_id == user_id),(Cart.product_id == product_id)).first()
     
@@ -64,3 +64,18 @@ def delete_cart_items(user_id):
         db.session.delete(item)
         db.session.commit()
     return {"message":"All Items  removed from cart"}
+
+
+#Update quantity of the item
+@app.route('/cart/<int:user_id>/<int:product_id>',methods=['PUT'])
+def update_cart_item(user_id,product_id):
+    item = Cart.query.filter((Cart.user_id==user_id),(Cart.product_id==product_id)).first()
+    product = requests.get(PRODUCT_SERVICE_URL+ str(product_id)).json()
+    if item:
+        data=request.get_json()
+        if(data['quantity']>product['quantity']):
+            return {"message":f"Currently the required quantity of product {product['product_name']} is not available"}, 404
+        item.quantity=data['quantity']
+        db.session.commit()
+        return {"message":"Quantity Updated"}
+    return {"message":"Item doesn't exists"},404
