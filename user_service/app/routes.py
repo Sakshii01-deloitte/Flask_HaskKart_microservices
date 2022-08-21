@@ -217,5 +217,11 @@ def get_all_products(current_user):
 
 
 
+ #Get products belonging to particular category
+@app.route('/product/<string:category>', methods=['GET'])
+@token_required
+def get_products_by_category(current_user,category):
+    res = requests.get(PRODUCT_SERVICE_URL + category)
+    return res.json(), res.status_code
 
- 
+

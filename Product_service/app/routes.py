@@ -102,3 +102,14 @@ def get_product_by_category(category):
     if len(output)==0:
         return{"message":"Products not found"},404
     return response
+
+
+#Reduce quantity on successfull purchase
+@app.route('/product/quantity/<int:id>',methods=['PUT'])
+def update_product_quantity(id):
+    product = Products.query.filter_by(id=id).first()
+    if not product:
+        return {"message":"product not found"},404
+    product.quantity= product.quantity-1
+    db.session.commit()
+    return {"message":"product updated successfully"}
