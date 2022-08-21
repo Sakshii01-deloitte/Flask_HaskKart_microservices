@@ -235,3 +235,58 @@ def add_item_to_cart(current_user, product_id):
     
     res = requests.post(CART_SERVICE_URL+str(current_user.id)+'/'+product_id, json=request.get_json())
     return res.json(), res.status_code
+
+#View Cart items
+@app.route('/cart/viewItems', methods=['GET'])
+@token_required
+def get_cart_items(current_user):
+    app.logger.info('get_cart_items')
+    res = requests.get(CART_SERVICE_URL + str(current_user.id))
+    return res.json(), res.status_code
+
+
+#Remove One Product from Cart
+@app.route('/cart/removeProduct/<product_id>', methods=['DELETE'])
+@token_required
+def remove_product(current_user, product_id):
+    app.logger.info('remove_product')
+    res = requests.delete(CART_SERVICE_URL+str(current_user.id)+'/'+product_id)
+    return res.json(), res.status_code
+
+#Remove all products from cart
+@app.route('/cart/removeAll', methods=['DELETE'])
+@token_required
+def remove_all_products(current_user):
+    app.logger.info('remove_product')
+    res = requests.delete(CART_SERVICE_URL+str(current_user.id))
+    return res.json(), res.status_code
+
+
+
+#Update quantity of the item
+@app.route('/cart/increment/<product_id>', methods=['PUT'])
+@token_required
+def increment_item_quantity(current_user, product_id):
+    app.logger.info('increment_item_quantity')
+    res = requests.put(CART_SERVICE_URL+ str(current_user.id)+'/'+product_id, json=request.get_json())
+    return res.json(), res.status_code
+
+
+#Purchase the items in cart
+@app.route('/buyAll', methods=['POST'])
+@token_required
+def get_all_transactions(current_user):
+    app.logger.info('buy_all_products')
+    res = requests.post('http://127.0.0.1:5002/buy/' + str(current_user.id), json=request.get_json())
+    print("hello")
+    print(request)
+  
+    return res.json(), res.status_code
+
+#View previous transactions
+@app.route('/transactions', methods=['GET'])
+@token_required
+def buy_all_products(current_user):
+    app.logger.info('Transactions')
+    res = requests.get('http://127.0.0.1:5002/transactions/' + str(current_user.id))
+    return res.json(), res.status_code

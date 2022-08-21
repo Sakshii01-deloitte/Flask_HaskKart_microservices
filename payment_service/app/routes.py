@@ -20,8 +20,8 @@ def add_item_to_cart(user_id, product_id):
     data = request.get_json()
     product = requests.get(PRODUCT_SERVICE_URL + str(product_id)).json()
     
-    if data['quantity'] > product['quantity']:
-        return {"message": f"Currently required quantity of {product['product_name']} is not available"},404
+    # if data['quantity'] > product['quantity']:
+    #     return {"message": f"Currently required quantity of {product['product_name']} is not available"},404
    
     present_item = Cart.query.filter((Cart.user_id == user_id),(Cart.product_id == product_id)).first()
     
