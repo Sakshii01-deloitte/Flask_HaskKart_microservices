@@ -31,6 +31,15 @@ def add_item_to_cart(user_id, product_id):
     item = Cart(user_id=user_id, product_id=product_id, quantity=data['quantity'])
     db.session.add(item)
     db.session.commit()
-    return {"message":"Item added to cart successfully"}                   
-    
-    
+    return {"message":"Item added to cart successfully"}          
+
+         
+#View Cart items
+@app.route('/cart/<int:user_id>',methods=['GET'])
+def get_cart_items(user_id):
+    items = Cart.query.filter_by(user_id=user_id).all()
+    output=[]
+    for item in items:
+        data={"product_id":item.product_id,"quantity":item.quantity}
+        output.append(data)
+    return {"Cart Items":output} 
